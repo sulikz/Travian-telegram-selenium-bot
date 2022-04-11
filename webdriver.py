@@ -2,6 +2,7 @@ import re
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
+
 import undetected_chromedriver as uc
 
 driver = uc.Chrome()
@@ -26,7 +27,7 @@ def login(email, password, server):
     driver.find_element(by=By.XPATH, value=f"//*[contains(text(), '{server}')]").click()
     driver.find_element(by=By.ID, value='usernameOrEmail').send_keys(email)
     driver.find_element(by=By.ID, value='password').send_keys(password)
-    driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Log in and play'").click()
+    driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Log in and play')]").click()
 
 
 def click_resources():
@@ -58,6 +59,7 @@ def click_adventures():
 
 
 # HERO #################################################################################################################
+
 def get_hero_hp():
     hp = driver.find_element(by=By.XPATH, value='//*[@id="attributes"]/div[1]/div[3]/table/tbody/tr[1]/td[2]/span').text
     hp = hp.replace('%', '')
