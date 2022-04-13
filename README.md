@@ -15,7 +15,7 @@ Selenium logic to manage page:
 \
 -getting resources/capacity info
 \
--getting currently built buildings in the village
+-sending attacks
 \
 -building troops
 \
@@ -24,8 +24,7 @@ Selenium logic to manage page:
 \
 To be implemented:
 \
--sending attacks
-\
+
 -creating build queue
 \
 -implement script logic e.g. raid cycler, dodging incoming attack

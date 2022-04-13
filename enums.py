@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class Roman(Enum):
+class Troops(Enum):
     """
     Roman troops enum
     """
@@ -14,13 +14,6 @@ class Roman(Enum):
     Battering_Ram = 'Battering Ram'
     Fire_Catapult = 'Fire_Catapult'
     Senator = 'Senator'
-    Settler = 'Settler'
-
-
-class Gaul(Enum):
-    """
-    Gaul troops enum
-    """
     Phalanx = 'Phalanx'
     Swordsman = 'Swordsman'
     Pathfinder = 'Pathfinder'
@@ -30,22 +23,13 @@ class Gaul(Enum):
     Ram = 'Ram'
     Trebuchet = 'Trebuchet'
     Chieftain = 'Chieftain'
-    Settler = 'Settler'
-
-
-class Teutons(Enum):
-    """
-    Teuton troops enum
-    """
     Clubswinger = 'Clubswinger'
     Spearman = 'Spearman'
     Axeman = 'Axeman'
     Scout = 'Scout'
     Paladin = 'Paladin'
     Teutonic_Knight = 'Teutonic Knight'
-    Ram = 'Ram'
     Catapult = 'Catapult'
-    Chief = 'Chief'
     Settler = 'Settler'
 
 
@@ -55,4 +39,4 @@ class AttackType(Enum):
     '''
     Normal = 'Attack: Normal'
     Raid = 'Attack: Raid'
-    Reinforcements = 'Reinforcement'
+    Reinforcement = 'Reinforcement'

@@ -1,16 +1,11 @@
-from configparser import ConfigParser
-
-from travian_webdriver import login
+from travianwebdriver import TravianWebDriver
 
 
 def main():
-    config = ConfigParser()
-    config.read('config.ini')
-    email = config.get('USER', 'email')
-    password = config.get('USER', 'password')
-    server = config.get('USER', 'server')
-
-    login(email, password, server)
+    twd = TravianWebDriver('config.ini')
+    twd.remove_popups()
+    twd.switch_language()
+    twd.login()
     while True:
         pass
 
