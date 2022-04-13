@@ -4,6 +4,22 @@ import time
 from travian_webdriver import TravianWebDriver
 
 
+class Production():
+    wood = 0
+    clay = 0
+    iron = 0
+    crop = 0
+
+
+class Storage():
+    wood = 0
+    clay = 0
+    iron = 0
+    crop = 0
+    warehouse_capacity = 0
+    granary_capacity = 0
+
+
 class Bot():
 
     def __init__(self, config_file, farm_file, build_file):
@@ -16,30 +32,26 @@ class Bot():
         self.twd.login()
         self.troops = None
         self.village_buildings = None
-        self.warehouse_capacity = None
-        self.granary_capacity = None
-        self.wood = None
-        self.clay = None
-        self.iron = None
-        self.crop = None
-        self.wood_production = None
-        self.clay_production = None
-        self.iron_production = None
-        self.crop_production = None
+        self.production = Production
+        self.storage = Storage
 
-    def get_village_info(self):
-        self.warehouse_capacity, self.granary_capacity = self.twd.get_capacity()
-        self.wood_production, self.clay_production, self.iron_production, self.crop_production = self.twd.get_production()
-        self.wood, self.clay, self.iron, self.crop = self.twd.get_resources()
+    def get_resources_info(self):
+        self.storage.warehouse_capacity, self.storage.granary_capacity = self.twd.get_capacity()
+        self.storage.wood, self.storage.clay, self.storage.iron, self.storage.crop = self.twd.get_resources()
+        self.production.wood, self.production.clay, self.production.iron, self.production.crop = self.twd.get_production()
+
+    def get_buildings_info(self):
         self.twd.click_buildings()
         self.village_buildings = self.twd.get_buildings()
+
+    def get_resources_info(self):
+        pass
+
+    def get_army_info(self):
         self.twd.click_buildings()
         self.twd.click_rally_point()
         self.twd.click_rp_overview()
         self.troops = self.twd.get_troops()
-
-    def read_village_info(self):
-        pass
 
     def read_build_queue_file(self, build_queue_file):
         building_queue = []

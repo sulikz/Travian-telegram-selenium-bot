@@ -343,6 +343,21 @@ class TravianWebDriver:
             capacity_list.append(int(c.text.encode('ascii', 'ignore')))
         return capacity_list
 
+    def get_fields(self) -> dict:
+        # To get gid4 - crop fields
+        # f = bot.twd.driver.find_element(by=By.XPATH, value='//*[contains(@class, "gid4")]')
+        fields = []
+        fields_content = self.driver.find_elements(by=By.XPATH, value='//*[@id="resourceFieldContainer"]/*')
+        for f in fields_content:
+            f = f.get_attribute('class').split(' ')
+            fields.append(f[len(f) - 1])
+        fields.pop(0)
+        fields.pop()
+        fields.pop()
+        # TODO
+        # return a proper structure. now returns list e.g. ['level2', 'level3' ... ]
+        return fields_content
+
     def get_buildings(self) -> dict:
         """
         From Buildings view get all built buildings with their corresponding IDs.
@@ -351,8 +366,8 @@ class TravianWebDriver:
         dict: returns dictionary with pairs like: {int->id: str->building name}
         """
         buildings_dict = {}
-        village_content = self.driver.find_elements(by=By.XPATH, value='//div[@id="villageContent"]/*')
-        for building in village_content:
+        buildings_content = self.driver.find_elements(by=By.XPATH, value='//div[@id="villageContent"]/*')
+        for building in buildings_content:
             if 'buildingSlot' in building.get_attribute(name='class'):
                 building_name = building.get_attribute(name='data-name')
                 id = building.get_attribute(name='data-aid')
