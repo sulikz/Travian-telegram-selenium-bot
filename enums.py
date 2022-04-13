@@ -14,6 +14,7 @@ class Troops(Enum):
     Battering_Ram = 'Battering Ram'
     Fire_Catapult = 'Fire_Catapult'
     Senator = 'Senator'
+
     Phalanx = 'Phalanx'
     Swordsman = 'Swordsman'
     Pathfinder = 'Pathfinder'
@@ -23,6 +24,7 @@ class Troops(Enum):
     Ram = 'Ram'
     Trebuchet = 'Trebuchet'
     Chieftain = 'Chieftain'
+
     Clubswinger = 'Clubswinger'
     Spearman = 'Spearman'
     Axeman = 'Axeman'
@@ -30,6 +32,7 @@ class Troops(Enum):
     Paladin = 'Paladin'
     Teutonic_Knight = 'Teutonic Knight'
     Catapult = 'Catapult'
+
     Settler = 'Settler'
 
 

@@ -1,0 +1,12 @@
+# File format:
+# Troop list;Coordinates
+#
+# Roman troops
+# Legionnaire;Praetorian;Imperian;Equites Legati;Equites Imperatoris;Equites Caesaris;Battering Ram;Fire_Catapult;Senator;Settler
+# Gaul troops
+# Phalanx;Swordsman;Pathfinder;Theutates Thunder;Druidrider;Haeduan;Ram;Trebuchet;Chieftain;Settler
+# Teuton troops
+# Clubswinger;Spearman;Axeman;Scout;Paladin;Teutonic Knight;Ram;Catapult;Chieftain;Settler
+#
+3 0 0 0 0 0 0 0 0 0 0;-59 -152
+3 0 0 0 0 0 0 0 0 0 0;-52 -146

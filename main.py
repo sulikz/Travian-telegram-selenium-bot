@@ -1,11 +1,9 @@
-from travian_webdriver import TravianWebDriver
+from bot import Bot
 
 
 def main():
-    twd = TravianWebDriver('config.ini')
-    twd.remove_popups()
-    twd.switch_language()
-    twd.login()
+    bot = Bot('config.ini', 'farm_list.txt', 'build_queue.txt')
+    bot.get_village_info()
     while True:
         pass
 

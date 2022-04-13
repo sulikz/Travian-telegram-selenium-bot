@@ -27,7 +27,7 @@ class TravianWebDriver:
         self.driver = uc.Chrome()
         self.driver.maximize_window()
         self.driver.get(self.url)
-        self.driver.implicitly_wait(1)
+        self.driver.implicitly_wait(2)
 
     def login(self):
         """
@@ -44,7 +44,7 @@ class TravianWebDriver:
         self.driver.find_element(by=By.ID, value='password').send_keys(self.password)
         self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Log in and play')]").click()
 
-    def remove_popups(self):
+    def close_popups(self):
         """
         Closes cookies pop ups that sometimes appear when entering the site.
         """
@@ -55,7 +55,7 @@ class TravianWebDriver:
         if cookies:
             cookies[0].click()
 
-    def switch_language(self):
+    def change_language(self):
         """
         Switch site language to British English.
         """
@@ -222,11 +222,12 @@ class TravianWebDriver:
         Parameters
         ----------
         troops: list of troops
-                e.g. [2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1] for Romans corresponds to 2 Legionnaires, 1 Imperian, 1 hero.
-                Index 0 - 1st unit
+                Index 0 - 1st unit (Phalanx/Clubswinger/Legionnaire)
+                Index 2 - 2nd unit (Swordsman/Swordman/Praetorian)
                 ...
                 Index 10 - Settler
                 Index 11 - Hero.
+                e.g. [2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1] for Romans corresponds to 2 Legionnaires, 1 Imperian, 1 hero.
         attack_type
         coordinates: tuple (x, y)
         """
@@ -252,6 +253,21 @@ class TravianWebDriver:
             pass
         # Click submit
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+        # Click confirm
+        self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+
+    def check_attack_possible(self):
+        """
+        Checks if there is an error message after attempting to send troops.
+        Returns
+        -------
+        False if sending troops failed, else True.
+        """
+        try:
+            self.driver.find_element(by=By.XPATH, value='//p[@class="error"]')
+            return False
+        except NoSuchElementException:
+            return True
 
     def train_troops(self, troop: str, quantity: int):
         """
@@ -308,9 +324,10 @@ class TravianWebDriver:
         """
         production_list = []
         production = self.driver.find_elements(by=By.CLASS_NAME, value='num')
-        for r in production:
+        for index, r in enumerate(production):
+            if index >= 4:
+                break
             production_list.append(int(r.text.encode('ascii', 'ignore')))
-        production_list.pop()
         return production_list
 
     def get_capacity(self) -> list:
