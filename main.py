@@ -1,4 +1,4 @@
-from travianwebdriver import TravianWebDriver
+from travian_webdriver import TravianWebDriver
 
 
 def main():
