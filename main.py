@@ -1,14 +1,19 @@
 from configparser import ConfigParser
 
-from webdriver import login
+from travian_webdriver import login
 
-config = ConfigParser()
-config.read('config.ini')
-email = config.get('USER', 'email')
-password = config.get('USER', 'password')
-server = config.get('USER', 'server')
 
-login(email, password, server)
+def main():
+    config = ConfigParser()
+    config.read('config.ini')
+    email = config.get('USER', 'email')
+    password = config.get('USER', 'password')
+    server = config.get('USER', 'server')
 
-while True:
-    pass
+    login(email, password, server)
+    while True:
+        pass
+
+
+if __name__ == '__main__':
+    main()
