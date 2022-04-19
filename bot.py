@@ -2,6 +2,7 @@ import random
 import time
 from configparser import ConfigParser
 
+from enums import AttackType
 from travian_webdriver import TravianWebDriver
 
 
@@ -13,12 +14,11 @@ class Bot:
         self.farm_list = None
         self.building_queue = None
         self.twd = TravianWebDriver(self.config)
-        self.troops = None
+        self.stationary_troops = None
         self.village_buildings = None
         self.fields = []
         self.production = Production
         self.storage = Storage
-        self.dodge_attacks = bool(self.config.get('USER', 'dodge_attacks'))
 
     # def dodge(self):
     #     self.twd.click_buildings()
@@ -35,13 +35,21 @@ class Bot:
         self.twd.login()
 
     def read_village_info(self):
-        functions = [self.read_resources, self.read_fields, self.twd.click_buildings,
-                     self.read_buildings, self.twd.click_resources]
-        # self.read_buildings, self.twd.click_rally_point,
-        # self.twd.click_rp_overview, self.read_army, self.twd.click_resources]
+        functions = [self.twd.click_resources(), self.read_resources(), self.read_fields(), self.twd.click_buildings(),
+                     self.read_buildings(), self.twd.click_resources()]
         for f in functions:
             sleep_random()
             f()
+
+    def read_troops(self):
+        functions = [self.twd.click_buildings(), self.twd.click_rally_point(), self.twd.click_rp_overview(),
+                     self.twd.click_stationary_troops_filter(), self.read_army(), self.twd.click_resources()]
+        for f in functions:
+            sleep_random()
+            f()
+
+    def send_troops(self, troops: list, attack_type: AttackType, coordinates: tuple):
+        self.twd.send_troops(troops, attack_type, coordinates)
 
     def read_resources(self):
         self.storage.warehouse_capacity, self.storage.granary_capacity = self.twd.get_capacity()
@@ -58,7 +66,7 @@ class Bot:
             self.fields.append((fields_type[index], f))
 
     def read_army(self):
-        self.troops = self.twd.get_troops()
+        self.stationary_troops = self.twd.get_troops()
 
     def check_attack(self):
         return self.twd.get_first_incoming_attack_time()
@@ -87,7 +95,7 @@ class Bot:
                 desired_level = int(data[1])
                 building_queue.append((building_name, desired_level))
         self.building_queue = building_queue
-
+        
 
 def sleep_random(min_t=0.5, max_t=3):
     time_to_sleep = random.uniform(min_t, max_t)

@@ -5,15 +5,13 @@ def main():
     # bot = Bot('config.ini')
     # bot.login()
     # bot.read_village_info()
-    # dodge = ProcessWrapper(dodge_process)
-    # alert = ProcessWrapper(alert_process)
-    # alert.start()
-    # dodge.start()
-    farmer = ProcessWrapper(farming_process)
+    alert = ProcessWrapper(alert_process)
+    alert.start()
+    farmer = ProcessWrapper(farming_process, args=(1800, 5400))
     farmer.start()
 
-    while True:
-        pass
+    # while True:
+    #     pass
 
 
 if __name__ == '__main__':

@@ -1,9 +1,12 @@
+import random
 import re
+import time
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 import undetected_chromedriver as uc
+# from bot import sleep_random
 from enums import AttackType
 
 
@@ -113,6 +116,7 @@ class TravianWebDriver:
         Turns on filter in Rally Point Overview.
         """
         self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
+
 
     def click_outgoing_troops_filter(self):
         """
@@ -260,6 +264,8 @@ class TravianWebDriver:
             for index, t in enumerate(troops):
                 self.driver.find_element(by=By.XPATH,
                                          value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input').send_keys(t)
+                time_to_sleep = random.uniform(0, 0.5)
+                time.sleep(time_to_sleep)
         except NoSuchElementException:
             # in case hero is not in the village
             pass
