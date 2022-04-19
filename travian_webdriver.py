@@ -1,5 +1,4 @@
 import re
-from configparser import ConfigParser
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -13,15 +12,16 @@ class TravianWebDriver:
     Class used to manage game UI.
     """
 
-    def __init__(self, config_file):
+    # config = ConfigParser()
+
+    def __init__(self, config):
 
         # Read config file
-        self.config = ConfigParser()
-        self.config.read(config_file)
-        self.email = self.config.get('USER', 'email')
-        self.password = self.config.get('USER', 'password')
-        self.server = self.config.get('USER', 'server')
-        self.url = self.config.get('WEBDRIVER', 'url')
+        # self.config.read(config_file)
+        self.email = config.get('USER', 'email')
+        self.password = config.get('USER', 'password')
+        self.server = config.get('USER', 'server')
+        self.url = config.get('WEBDRIVER', 'url')
 
         # Create driver
         self.driver = uc.Chrome()
@@ -107,6 +107,18 @@ class TravianWebDriver:
             self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[2]/p/a').click()
         except NoSuchElementException:
             pass
+
+    def click_stationary_troops_filter(self):
+        """
+        Turns on filter in Rally Point Overview.
+        """
+        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
+
+    def click_outgoing_troops_filter(self):
+        """
+        Turns on filter in Rally Point Overview.
+        """
+        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[2]/').click()
 
     def click_hero(self):
         """
@@ -293,7 +305,6 @@ class TravianWebDriver:
         """
 
         troops_list = []
-        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
         troops_table = self.driver.find_elements(by=By.XPATH, value='//*[@id="build"]/div[2]/table/tbody[2]/tr/*')
         troops_table.pop(0)
         for t in troops_table:
@@ -343,9 +354,7 @@ class TravianWebDriver:
             capacity_list.append(int(c.text.encode('ascii', 'ignore')))
         return capacity_list
 
-    def get_fields(self) -> dict:
-        # To get gid4 - crop fields
-        # f = bot.twd.driver.find_element(by=By.XPATH, value='//*[contains(@class, "gid4")]')
+    def get_fields(self) -> list:
         fields = []
         fields_content = self.driver.find_elements(by=By.XPATH, value='//*[@id="resourceFieldContainer"]/*')
         for f in fields_content:
@@ -354,9 +363,7 @@ class TravianWebDriver:
         fields.pop(0)
         fields.pop()
         fields.pop()
-        # TODO
-        # return a proper structure. now returns list e.g. ['level2', 'level3' ... ]
-        return fields_content
+        return fields
 
     def get_buildings(self) -> dict:
         """
