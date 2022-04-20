@@ -29,7 +29,21 @@ class ProcessWrapper:
         self.is_running = False
 
 
-def notification_process(config_file):
+def notifier(config_file):
+    """
+    Notifies user through Telegram messages about:
+    -incoming attacks
+    -available adventures if hero is in the village
+    -empty building queue status
+    Parameters
+    ----------
+    config_file
+
+    Returns
+    -------
+
+    """
+
     attack_notification_sent = False
     adventure_notification_sent = False
     building_notification_sent = False
@@ -64,28 +78,31 @@ def notification_process(config_file):
             building_notification_sent = False
 
 
-# Necessary??
-# def dodge_process():
-#     bot = Bot('config.ini')
-#     bot.login()
-#     send_telegram_text('Dodge attacks enabled.')
-#     while True:
-#         incoming_attack_time = bot.check_attack()
-#         if incoming_attack_time < 3:
-#             bot.twd.send_troops()
-#             # dodge_attack
-#             pass
+def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
+    """
+    Raids destinations specified in farm_file. Shuffles raid list each time farmer is initialized for more random
+    behavior. Skips destination if unable to attack. If there are not enough troops function sleeps for random
+    <min_sleep_time, max_sleep_time> [s].
+    Parameters
+    ----------
+    farm_file
+    config_file
+    min_sleep_time
+    max_sleep_time
 
+    Returns
+    -------
 
-def farming_process(config_file, min_sleep_time, max_sleep_time):
+    """
     telebot = TelegramBot(config_file)
     telebot.send_telegram_text('Initializing farming process.')
     bot = Bot(config_file)
     bot.login()
-    bot.load_farm_file('farm_list.txt')
+    bot.load_farm_file(farm_file)
     telebot.send_telegram_text(f'Farm list loaded. {bot.farm_list}')
     telebot.send_telegram_text('Farming process enabled.')
     random.shuffle(bot.farm_list)
+    # Enter rally point
     bot.twd.click_buildings()
     bot.twd.click_rally_point()
     while True:
@@ -93,12 +110,20 @@ def farming_process(config_file, min_sleep_time, max_sleep_time):
         for destination in bot.farm_list:
             # Unpack troops
             troops, coords = destination
-            # enter rally point
+            # Send troops to coordinates
             sleep_random(0, 1)
-            bot.twd.click_rp_overview()
+            bot.twd.click_rp_send_troops()
             sleep_random(0, 1)
-            bot.twd.click_stationary_troops_filter()
+            bot.send_troops(troops, AttackType.Raid, coords)
+            if not bot.twd.check_attack_possible():
+                enough_troops = False
+                telebot.send_telegram_text(f'Unable to send troops to {coords}')
+            # Wait if all troops have been sent
             while not enough_troops:
+                sleep_random(0, 1)
+                bot.twd.click_rp_overview()
+                sleep_random(0, 1)
+                bot.twd.click_stationary_troops_filter()
                 bot.read_army()
                 # Get current troops
                 # If not enough troops -> sleep
@@ -110,17 +135,9 @@ def farming_process(config_file, min_sleep_time, max_sleep_time):
                     sleep_random(min_sleep_time, max_sleep_time)
                 else:
                     enough_troops = True
-            # Send troops to coordinates
-            sleep_random(0, 1)
-            bot.twd.click_rp_send_troops()
-            sleep_random(0, 1)
-            bot.send_troops(troops, AttackType.Raid, coords)
-            if not bot.twd.check_attack_possible():
-                enough_troops = False
-                telebot.send_telegram_text(f'Unable to send troops to {coords}')
 
 
-def builder_process():
+def builder():
     # #initialize bot
     # load build queue file
     # check resources
@@ -128,6 +145,17 @@ def builder_process():
     pass
 
 
-def listener_process():
+def listener():
     # to manage bot through telegram process
     pass
+
+# def dodger():
+#     bot = Bot('config.ini')
+#     bot.login()
+#     send_telegram_text('Dodge attacks enabled.')
+#     while True:
+#         incoming_attack_time = bot.check_attack()
+#         if incoming_attack_time < 3:
+#             bot.twd.send_troops()
+#             # dodge_attack
+#             pass

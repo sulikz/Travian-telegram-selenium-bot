@@ -15,3 +15,4 @@ class TelegramBot:
         send_text = 'https://api.telegram.org/bot' + self.token + '/sendMessage?chat_id=' + self.chatid + '&parse_mode=Markdown&text=' + bot_message
         response = requests.get(send_text)
         return response.json()
+

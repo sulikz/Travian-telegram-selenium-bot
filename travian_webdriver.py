@@ -6,7 +6,6 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 import undetected_chromedriver as uc
-# from bot import sleep_random
 from enums import AttackType
 
 
@@ -16,12 +15,11 @@ class TravianWebDriver:
     """
 
     def __init__(self, config):
-
+        # Read config
         self.email = config.get('USER', 'email')
         self.password = config.get('USER', 'password')
         self.server = config.get('USER', 'server')
         self.url = config.get('WEBDRIVER', 'url')
-
         # Create driver
         self.driver = uc.Chrome()
         self.driver.maximize_window()
