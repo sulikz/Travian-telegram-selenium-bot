@@ -29,9 +29,8 @@ class Bot:
     #     pass
 
     def login(self):
-        # self.twd = TravianWebDriver(self.config)
         self.twd.close_popups()
-        self.twd.change_language()
+        # self.twd.change_language_british()
         self.twd.login()
 
     def read_village_info(self):
@@ -95,7 +94,7 @@ class Bot:
                 desired_level = int(data[1])
                 building_queue.append((building_name, desired_level))
         self.building_queue = building_queue
-        
+
 
 def sleep_random(min_t=0.5, max_t=3):
     time_to_sleep = random.uniform(min_t, max_t)

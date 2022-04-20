@@ -15,12 +15,8 @@ class TravianWebDriver:
     Class used to manage game UI.
     """
 
-    # config = ConfigParser()
-
     def __init__(self, config):
 
-        # Read config file
-        # self.config.read(config_file)
         self.email = config.get('USER', 'email')
         self.password = config.get('USER', 'password')
         self.server = config.get('USER', 'server')
@@ -58,7 +54,7 @@ class TravianWebDriver:
         if cookies:
             cookies[0].click()
 
-    def change_language(self):
+    def change_language_british(self):
         """
         Switch site language to British English.
         """
@@ -117,7 +113,6 @@ class TravianWebDriver:
         """
         self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
 
-
     def click_outgoing_troops_filter(self):
         """
         Turns on filter in Rally Point Overview.
@@ -152,23 +147,26 @@ class TravianWebDriver:
 
     def check_hero(self) -> bool:
         """
-        From Resources view checks if Hero is in the village.
+        Checks if Hero is in the village.
         Returns
         -------
         bool: True if Hero is available in the village, else False
         """
-        # TODO
-        return False
+        try:
+            self.driver.find_element(by=By.XPATH, value='//*[@class="heroHome"]')
+            return True
+        except NoSuchElementException:
+            return False
 
     def check_adventure(self) -> bool:
         """
-        From Hero->Adventures view check if any adventure is available .
+        Checks if any adventure is available .
         Returns
         -------
         bool: True if adventure is available, else False
         """
         try:
-            self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Start adventure')]")
+            self.driver.find_element(by=By.XPATH, value='//*[@href="/hero/adventures"]/div')
             return True
         except NoSuchElementException:
             return False
@@ -389,7 +387,17 @@ class TravianWebDriver:
                 buildings_dict.update({int(id): building_name})
         return buildings_dict
 
-    def construct_building(id: int, building_name: str):
+    def check_if_building(self):
+        """
+        From Resources/Buildings view checks if any building is currently being built.
+        """
+        try:
+            self.driver.find_element(by=By.XPATH, value='//div[@class="buildingList"]')
+            return True
+        except NoSuchElementException:
+            return False
+
+    def construct_building(self, id: int, building_name: str):
         """
 
         Parameters

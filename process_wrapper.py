@@ -5,7 +5,7 @@ import time
 
 from bot import Bot, sleep_random
 from enums import AttackType
-from telegram import send_telegram_text
+from telegram import TelegramBot
 
 
 class ProcessWrapper:
@@ -29,17 +29,39 @@ class ProcessWrapper:
         self.is_running = False
 
 
-def alert_process():
-    send_telegram_text('Initializing attack notifications.')
-    bot = Bot('config.ini')
+def notification_process(config_file):
+    attack_notification_sent = False
+    adventure_notification_sent = False
+    building_notification_sent = False
+    telebot = TelegramBot(config_file)
+    bot = Bot(config_file)
     bot.login()
-    send_telegram_text('Incoming attack notifications enabled.')
+    telebot.send_telegram_text('Telegram notifications enabled.')
     while True:
+        # Check incoming attacks
         incoming_attack_time = bot.check_attack()
-        if incoming_attack_time != 0:
-            send_telegram_text(f'Incoming attack in {str(datetime.timedelta(seconds=incoming_attack_time))}')
-            # Wait for the incoming attack
-            time.sleep(incoming_attack_time)
+        if incoming_attack_time != 0 and not attack_notification_sent:
+            telebot.send_telegram_text(f'Incoming attack in {str(datetime.timedelta(seconds=incoming_attack_time))}')
+            attack_notification_sent = True
+        # Wait for the attack to pass so the new one will be detected
+        if incoming_attack_time < 5 and attack_notification_sent:
+            attack_notification_sent = False
+            time.sleep(5)
+        # Check adventure
+        hero_in_village = bot.twd.check_hero()
+        adventure_available = bot.twd.check_adventure()
+        if hero_in_village and adventure_available and not adventure_notification_sent:
+            telebot.send_telegram_text(f'Hero is in the village and adventure is available.')
+            adventure_notification_sent = True
+        if adventure_notification_sent and not hero_in_village:
+            adventure_notification_sent = False
+        # Check building queue
+        is_being_built = bot.twd.check_if_building()
+        if not is_being_built and not building_notification_sent:
+            telebot.send_telegram_text(f'Building queue free. Resources in the village: {bot.twd.get_resources()}')
+            building_notification_sent = True
+        if building_notification_sent and is_being_built:
+            building_notification_sent = False
 
 
 # Necessary??
@@ -55,13 +77,14 @@ def alert_process():
 #             pass
 
 
-def farming_process(min_sleep_time, max_sleep_time):
-    send_telegram_text('Initializing farming process.')
-    bot = Bot('config.ini')
+def farming_process(config_file, min_sleep_time, max_sleep_time):
+    telebot = TelegramBot(config_file)
+    telebot.send_telegram_text('Initializing farming process.')
+    bot = Bot(config_file)
     bot.login()
     bot.load_farm_file('farm_list.txt')
-    send_telegram_text(f'Farm list loaded. {bot.farm_list}')
-    send_telegram_text('Farming process enabled.')
+    telebot.send_telegram_text(f'Farm list loaded. {bot.farm_list}')
+    telebot.send_telegram_text('Farming process enabled.')
     random.shuffle(bot.farm_list)
     bot.twd.click_buildings()
     bot.twd.click_rally_point()
@@ -78,28 +101,23 @@ def farming_process(min_sleep_time, max_sleep_time):
             while not enough_troops:
                 bot.read_army()
                 # Get current troops
-                # bot.read_troops()
                 # If not enough troops -> sleep
                 temp_list = []
                 for i, _ in enumerate(bot.farm_list):
                     temp_list.append(bot.stationary_troops[i] - troops[i])
                 if any(f < 0 for f in temp_list):
-                    send_telegram_text(f'Not enough troops. Sleeping...')
+                    telebot.send_telegram_text(f'Not enough troops. Sleeping...')
                     sleep_random(min_sleep_time, max_sleep_time)
                 else:
                     enough_troops = True
             # Send troops to coordinates
-            # bot.twd.click_buildings()
-            # sleep_random(0, 1)
-            # bot.twd.click_rally_point()
             sleep_random(0, 1)
             bot.twd.click_rp_send_troops()
             sleep_random(0, 1)
-            send_telegram_text(f'Sending {troops} troops to {coords}')
             bot.send_troops(troops, AttackType.Raid, coords)
             if not bot.twd.check_attack_possible():
                 enough_troops = False
-                send_telegram_text('Unable to send troops.')
+                telebot.send_telegram_text(f'Unable to send troops to {coords}')
 
 
 def builder_process():
