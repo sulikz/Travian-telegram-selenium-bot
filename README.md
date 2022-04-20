@@ -2,31 +2,20 @@
 
 This is a Python program used to automate Travian web game using Selenium.
 \
+This is only for educational purposes.
+\
 Use config.ini file to provide your credentials.
 \
 \
 Currently implemented:
 \
-Selenium logic to manage page:
+Selenium logic to manage webpage.
 \
--logging in
+Telegram notifications: village under attack, free build queue, hero adventure availability.
 \
--sending hero to adventure
+Cycle raiding specified villages/oases.
 \
--getting resources/capacity info
-\
--sending attacks
-\
--building troops
-\
--getting village stationary troops
-\
-\
-To be implemented:
-\
-
+To be implemented\
 -creating build queue
 \
--implement script logic e.g. raid cycler, dodging incoming attack
-\
--implement Telegram notifications + managing village through messages
+-managing bot through messages
