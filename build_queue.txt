@@ -1,0 +1,6 @@
+# File format:
+# BUILDING_NAME:LEVEL
+Barracks:3
+Barracks:4
+Main Building:4
+Main Building:5

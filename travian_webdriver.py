@@ -1,5 +1,6 @@
+import random
 import re
-from configparser import ConfigParser
+import time
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -13,21 +14,17 @@ class TravianWebDriver:
     Class used to manage game UI.
     """
 
-    def __init__(self, config_file):
-
-        # Read config file
-        self.config = ConfigParser()
-        self.config.read(config_file)
-        self.email = self.config.get('USER', 'email')
-        self.password = self.config.get('USER', 'password')
-        self.server = self.config.get('USER', 'server')
-        self.url = self.config.get('WEBDRIVER', 'url')
-
+    def __init__(self, config):
+        # Read config
+        self.email = config.get('USER', 'email')
+        self.password = config.get('USER', 'password')
+        self.server = config.get('USER', 'server')
+        self.url = config.get('WEBDRIVER', 'url')
         # Create driver
         self.driver = uc.Chrome()
         self.driver.maximize_window()
         self.driver.get(self.url)
-        self.driver.implicitly_wait(1)
+        self.driver.implicitly_wait(2)
 
     def login(self):
         """
@@ -44,7 +41,7 @@ class TravianWebDriver:
         self.driver.find_element(by=By.ID, value='password').send_keys(self.password)
         self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Log in and play')]").click()
 
-    def remove_popups(self):
+    def close_popups(self):
         """
         Closes cookies pop ups that sometimes appear when entering the site.
         """
@@ -55,7 +52,7 @@ class TravianWebDriver:
         if cookies:
             cookies[0].click()
 
-    def switch_language(self):
+    def change_language_british(self):
         """
         Switch site language to British English.
         """
@@ -108,6 +105,18 @@ class TravianWebDriver:
         except NoSuchElementException:
             pass
 
+    def click_stationary_troops_filter(self):
+        """
+        Turns on filter in Rally Point Overview.
+        """
+        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
+
+    def click_outgoing_troops_filter(self):
+        """
+        Turns on filter in Rally Point Overview.
+        """
+        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[2]/').click()
+
     def click_hero(self):
         """
         Clicks Hero icon.
@@ -136,23 +145,26 @@ class TravianWebDriver:
 
     def check_hero(self) -> bool:
         """
-        From Resources view checks if Hero is in the village.
+        Checks if Hero is in the village.
         Returns
         -------
         bool: True if Hero is available in the village, else False
         """
-        # TODO
-        return False
+        try:
+            self.driver.find_element(by=By.XPATH, value='//*[@class="heroHome"]')
+            return True
+        except NoSuchElementException:
+            return False
 
     def check_adventure(self) -> bool:
         """
-        From Hero->Adventures view check if any adventure is available .
+        Checks if any adventure is available .
         Returns
         -------
         bool: True if adventure is available, else False
         """
         try:
-            self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Start adventure')]")
+            self.driver.find_element(by=By.XPATH, value='//*[@href="/hero/adventures"]/div')
             return True
         except NoSuchElementException:
             return False
@@ -222,11 +234,12 @@ class TravianWebDriver:
         Parameters
         ----------
         troops: list of troops
-                e.g. [2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1] for Romans corresponds to 2 Legionnaires, 1 Imperian, 1 hero.
-                Index 0 - 1st unit
+                Index 0 - 1st unit (Phalanx/Clubswinger/Legionnaire)
+                Index 2 - 2nd unit (Swordsman/Swordman/Praetorian)
                 ...
                 Index 10 - Settler
                 Index 11 - Hero.
+                e.g. [2, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1] for Romans corresponds to 2 Legionnaires, 1 Imperian, 1 hero.
         attack_type
         coordinates: tuple (x, y)
         """
@@ -247,11 +260,28 @@ class TravianWebDriver:
             for index, t in enumerate(troops):
                 self.driver.find_element(by=By.XPATH,
                                          value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input').send_keys(t)
+                time_to_sleep = random.uniform(0, 0.5)
+                time.sleep(time_to_sleep)
         except NoSuchElementException:
             # in case hero is not in the village
             pass
         # Click submit
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+        # Click confirm
+        self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+
+    def check_attack_possible(self):
+        """
+        Checks if there is an error message after attempting to send troops.
+        Returns
+        -------
+        False if sending troops failed, else True.
+        """
+        try:
+            self.driver.find_element(by=By.XPATH, value='//p[@class="error"]')
+            return False
+        except NoSuchElementException:
+            return True
 
     def train_troops(self, troop: str, quantity: int):
         """
@@ -277,7 +307,6 @@ class TravianWebDriver:
         """
 
         troops_list = []
-        self.driver.find_element(by=By.XPATH, value='//*[@id="build"]/div[1]/div/button[3]').click()
         troops_table = self.driver.find_elements(by=By.XPATH, value='//*[@id="build"]/div[2]/table/tbody[2]/tr/*')
         troops_table.pop(0)
         for t in troops_table:
@@ -308,9 +337,10 @@ class TravianWebDriver:
         """
         production_list = []
         production = self.driver.find_elements(by=By.CLASS_NAME, value='num')
-        for r in production:
+        for index, r in enumerate(production):
+            if index >= 4:
+                break
             production_list.append(int(r.text.encode('ascii', 'ignore')))
-        production_list.pop()
         return production_list
 
     def get_capacity(self) -> list:
@@ -326,6 +356,17 @@ class TravianWebDriver:
             capacity_list.append(int(c.text.encode('ascii', 'ignore')))
         return capacity_list
 
+    def get_fields(self) -> list:
+        fields = []
+        fields_content = self.driver.find_elements(by=By.XPATH, value='//*[@id="resourceFieldContainer"]/*')
+        for f in fields_content:
+            f = f.get_attribute('class').split(' ')
+            fields.append(f[len(f) - 1])
+        fields.pop(0)
+        fields.pop()
+        fields.pop()
+        return fields
+
     def get_buildings(self) -> dict:
         """
         From Buildings view get all built buildings with their corresponding IDs.
@@ -334,8 +375,8 @@ class TravianWebDriver:
         dict: returns dictionary with pairs like: {int->id: str->building name}
         """
         buildings_dict = {}
-        village_content = self.driver.find_elements(by=By.XPATH, value='//div[@id="villageContent"]/*')
-        for building in village_content:
+        buildings_content = self.driver.find_elements(by=By.XPATH, value='//div[@id="villageContent"]/*')
+        for building in buildings_content:
             if 'buildingSlot' in building.get_attribute(name='class'):
                 building_name = building.get_attribute(name='data-name')
                 id = building.get_attribute(name='data-aid')
@@ -344,7 +385,17 @@ class TravianWebDriver:
                 buildings_dict.update({int(id): building_name})
         return buildings_dict
 
-    def construct_building(id: int, building_name: str):
+    def check_if_building(self):
+        """
+        From Resources/Buildings view checks if any building is currently being built.
+        """
+        try:
+            self.driver.find_element(by=By.XPATH, value='//div[@class="buildingList"]')
+            return True
+        except NoSuchElementException:
+            return False
+
+    def construct_building(self, id: int, building_name: str):
         """
 
         Parameters
