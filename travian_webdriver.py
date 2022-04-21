@@ -1,12 +1,10 @@
-import random
 import re
-import time
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
 
 import undetected_chromedriver as uc
-from enums import AttackType
+from enums import AttackType, Buildings
 
 
 class TravianWebDriver:
@@ -66,6 +64,38 @@ class TravianWebDriver:
         Click Buildings icon.
         """
         self.driver.find_element(by=By.XPATH, value='//*[@id="navigation"]/a[2]').click()
+
+    def click_upgrade(self):
+        """
+        Click building upgrade button.
+        """
+        self.driver.find_element(by=By.XPATH, value="//button[contains(text(), 'Upgrade to level')]").click()
+
+    def is_upgrade_button(self):
+        """
+        Checks if upgrade button is available.
+        Returns
+        -------
+
+        """
+        try:
+            self.driver.find_element(by=By.XPATH, value="//button[contains(text(), 'Upgrade to level')]")
+            return True
+        except NoSuchElementException:
+            return False
+
+    def click_building(self, name: str):
+        """
+        Click buiilding from Buildings menu.
+        Parameters
+        ----------
+        name
+
+        Returns
+        -------
+
+        """
+        self.driver.find_element(by=By.XPATH, value=f'//div[@id="villageContent"]/div[@data-name="{name}"]').click()
 
     def click_barracks(self):
         """
@@ -246,6 +276,30 @@ class TravianWebDriver:
         """
         quantity_inputs = ['tr[1]/td[1]', 'tr[2]/td[1]', 'tr[3]/td[1]', 'tr[1]/td[2]', 'tr[2]/td[2]', 'tr[3]/td[2]',
                            'tr[1]/td[3]', 'tr[2]/td[3]', 'tr[1]/td[4]', 'tr[2]/td[4]', 'tr[3]/td[4]']
+        # Input troops
+        for index, t in enumerate(troops):
+            if t > 0:
+                troops_available = 0
+                try:
+                    troops_available = int(self.driver.find_element(by=By.XPATH,
+                                                                    value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/a').text.encode(
+                        'ascii', 'ignore'))
+                except NoSuchElementException:
+                    # troops unavailable
+                    pass
+                print(f"{troops_available} - {t}")
+                if troops_available - t < 0:
+                    # Not enough troops to send
+                    return False
+                try:
+                    input_box = self.driver.find_element(by=By.XPATH,
+                                                         value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input')
+                    input_box.clear()
+                    input_box.send_keys(t)
+
+                except NoSuchElementException:
+                    # in case hero is not in the village
+                    pass
         # Select attack type
         if attack_type == AttackType.Reinforcement:
             self.driver.find_element(by=By.XPATH, value='//*[@class="option"]/label/input[@value="2"]').click()
@@ -254,32 +308,10 @@ class TravianWebDriver:
         if attack_type == AttackType.Raid:
             self.driver.find_element(by=By.XPATH, value='//*[@class="option"]/label/input[@value="4"]').click()
         # Input coordinates
+        self.driver.find_element(by=By.XPATH, value='//div[@class="xCoord"]/input').clear()
         self.driver.find_element(by=By.XPATH, value='//div[@class="xCoord"]/input').send_keys(coordinates[0])
+        self.driver.find_element(by=By.XPATH, value='//div[@class="yCoord"]/input').clear()
         self.driver.find_element(by=By.XPATH, value='//div[@class="yCoord"]/input').send_keys(coordinates[1])
-        # Input troops
-        for index, t in enumerate(troops):
-            troops_available = 0
-            try:
-                troops_available = int(self.driver.find_element(by=By.XPATH,
-                                                                value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/a').text.encode(
-                    'ascii', 'ignore'))
-            except NoSuchElementException:
-                # troops unavailable
-                pass
-            if troops_available - t < 0:
-                # Not enough troops to send
-                return False
-            try:
-                input_box = self.driver.find_element(by=By.XPATH,
-                                                     value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input')
-                input_box.clear()
-                input_box.send_keys(t)
-
-            except NoSuchElementException:
-                # in case hero is not in the village
-                pass
-            time_to_sleep = random.uniform(0, 0.5)
-            time.sleep(time_to_sleep)
         # Click submit
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
         # Click confirm
@@ -411,13 +443,12 @@ class TravianWebDriver:
         except NoSuchElementException:
             return False
 
-    def construct_building(self, id: int, building_name: str):
+    def upgrade_building(self, building_name: Buildings):
         """
 
         Parameters
         ----------
-        id - id of a slot to build in
         building_name - name of a building to build
         """
-        # TODO
-        pass
+        self.click_building(building_name.value)
+        self.click_upgrade()

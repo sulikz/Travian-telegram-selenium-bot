@@ -2,7 +2,6 @@ import random
 import time
 from configparser import ConfigParser
 
-from enums import AttackType
 from travian_webdriver import TravianWebDriver
 
 
@@ -19,13 +18,15 @@ class Bot:
         # Initialize webdriver
         self.twd = TravianWebDriver(self.url)
         # Initialize attributes
-        self.farm_list = None
-        self.building_queue = None
-        self.stationary_troops = None
-        self.village_buildings = None
+        self.farm_list = []
+        self.building_queue = []
+        self.stationary_troops = []
+        self.village_buildings = {}
         self.fields = []
-        self.production = Production
-        self.storage = Storage
+        self.production = []
+        self.resources = []
+        self.granary_capacity = None
+        self.warehouse_capacity = None
 
     def login(self):
         self.twd.close_popups()
@@ -47,13 +48,10 @@ class Bot:
             sleep_random()
             f()
 
-    def send_troops(self, troops: list, attack_type: AttackType, coordinates: tuple):
-        self.twd.send_troops(troops, attack_type, coordinates)
-
     def read_resources(self):
-        self.storage.warehouse_capacity, self.storage.granary_capacity = self.twd.get_capacity()
-        self.storage.wood, self.storage.clay, self.storage.iron, self.storage.crop = self.twd.get_resources()
-        self.production.wood, self.production.clay, self.production.iron, self.production.crop = self.twd.get_production()
+        self.warehouse_capacity, self.granary_capacity = self.twd.get_capacity()
+        self.resources = self.twd.get_resources()
+        self.production = self.twd.get_production()
 
     def read_buildings(self):
         self.village_buildings = self.twd.get_buildings()
@@ -66,9 +64,6 @@ class Bot:
 
     def read_army(self):
         self.stationary_troops = self.twd.get_troops()
-
-    def check_attack(self):
-        return self.twd.get_first_incoming_attack_time()
 
     def load_farm_file(self, farm_list_file):
         farm_list = []
@@ -89,10 +84,8 @@ class Bot:
             for line in file.read().splitlines():
                 if line.startswith('#'):
                     continue
-                data = line.split(':')
-                building_name = data[0]
-                desired_level = int(data[1])
-                building_queue.append((building_name, desired_level))
+                building_name = line
+                building_queue.append(building_name)
         self.building_queue = building_queue
 
 
@@ -100,19 +93,3 @@ def sleep_random(min_t=0.5, max_t=3):
     time_to_sleep = random.uniform(min_t, max_t)
     time.sleep(time_to_sleep)
     return time_to_sleep
-
-
-class Production:
-    wood = 0
-    clay = 0
-    iron = 0
-    crop = 0
-
-
-class Storage:
-    wood = 0
-    clay = 0
-    iron = 0
-    crop = 0
-    warehouse_capacity = 0
-    granary_capacity = 0

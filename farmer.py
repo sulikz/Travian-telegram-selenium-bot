@@ -2,7 +2,7 @@ from process_wrapper import *
 
 
 def main():
-    farmer_process = ProcessWrapper(farmer, args=('config.ini', 'farm_list.txt', 1800, 4800,))
+    farmer_process = ProcessWrapper(farmer, args=('config.ini', 'farm_list.txt', 600, 1200,))
     farmer_process.start()
 
 

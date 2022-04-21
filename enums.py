@@ -36,6 +36,42 @@ class Troops(Enum):
     Settler = 'Settler'
 
 
+class Buildings(Enum):
+    Town_Hall = 'Town Hall'
+    Stonemasons_Lodge = 'Stonemason\'s Lodge'
+    Treasury = 'Treasury'
+    Wonder = 'Wonder of the World'
+    Main_Building = 'Main Building'
+    Cranny = 'Cranny'
+    Palace = 'Palace'
+    Residence = 'Residence'
+    Marketplace = 'Marketplace'
+    Trade_Office = 'Trade Office'
+    Embassy = 'Embassy'
+    Barracks = 'Barracks'
+    Stable = 'Stable'
+    Workshop = 'Workshop'
+    Great_Barracks = 'Great Barracks'
+    Great_Stable = 'Great Stable'
+    Trapper = 'Trapper'
+    City_Wall = 'City Wall'
+    Earth_Wall = 'Earth Wall'
+    Pallisade = 'Pallisade'
+    Academy = 'Academy'
+    Smithy = 'Smithy'
+    Hero_Mansion = 'Hero\'s mansion'
+    Rally_Point = 'Rally Point'
+    Granary = 'Granary'
+    Warehouse = 'Warehouse'
+    Great_Granary = 'Great Granary'
+    Great_Warehouse = 'Great Warehouse'
+    Sawmill = 'Sawmill'
+    Brickyard = 'Brickyard'
+    Iron_foundry = 'Iron foundry'
+    Grain_Mill = 'Grain Mill'
+    Bakery = 'Bakery'
+
+
 class AttackType(Enum):
     '''
     Attack type enum
