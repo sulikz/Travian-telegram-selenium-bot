@@ -14,19 +14,14 @@ class TravianWebDriver:
     Class used to manage game UI.
     """
 
-    def __init__(self, config):
-        # Read config
-        self.email = config.get('USER', 'email')
-        self.password = config.get('USER', 'password')
-        self.server = config.get('USER', 'server')
-        self.url = config.get('WEBDRIVER', 'url')
+    def __init__(self, url):
         # Create driver
         self.driver = uc.Chrome()
         self.driver.maximize_window()
-        self.driver.get(self.url)
+        self.driver.get(url)
         self.driver.implicitly_wait(2)
 
-    def login(self):
+    def login(self, email, password, server):
         """
 
         Parameters
@@ -36,9 +31,9 @@ class TravianWebDriver:
         server: str
         """
         self.driver.find_element(by=By.XPATH, value='//*[@id="sectionAfter"]/ul/li[3]/a').click()
-        self.driver.find_element(by=By.XPATH, value=f"//*[contains(text(), '{self.server}')]").click()
-        self.driver.find_element(by=By.ID, value='usernameOrEmail').send_keys(self.email)
-        self.driver.find_element(by=By.ID, value='password').send_keys(self.password)
+        self.driver.find_element(by=By.XPATH, value=f"//*[contains(text(), '{server}')]").click()
+        self.driver.find_element(by=By.ID, value='usernameOrEmail').send_keys(email)
+        self.driver.find_element(by=By.ID, value='password').send_keys(password)
         self.driver.find_element(by=By.XPATH, value="//*[contains(text(), 'Log in and play')]").click()
 
     def close_popups(self):
@@ -187,17 +182,23 @@ class TravianWebDriver:
         -------
         int: time until next attack in seconds.
         """
+        # Check if troops are incoming
         try:
+            incoming_text = self.driver.find_element(by=By.XPATH, value='//*[@id="movements"]/tbody/tr[1]/th').text
+            if 'Incoming' not in incoming_text:
+                return 0
+            # Check if is attack
             attacks = self.driver.find_element(by=By.XPATH, value='//*[@id="movements"]/tbody/tr[2]/td[2]/div[1]').text
             if 'Attack' not in attacks:
                 return 0
-            time = self.driver.find_element(by=By.XPATH,
-                                            value='//*[@id="movements"]/tbody/tr[2]/td[2]/div[2]/span').text
-            time = time.split(':')
-            time_seconds = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
-            return time_seconds
-        except NoSuchElementException:
+        except (AttributeError, NoSuchElementException):
             return 0
+        # Check time
+        time = self.driver.find_element(by=By.XPATH,
+                                        value='//*[@id="movements"]/tbody/tr[2]/td[2]/div[2]/span').text
+        time = time.split(':')
+        time_seconds = int(time[0]) * 3600 + int(time[1]) * 60 + int(time[2])
+        return time_seconds
 
     def get_incoming_attacks_time(self) -> list:
         """
@@ -256,19 +257,34 @@ class TravianWebDriver:
         self.driver.find_element(by=By.XPATH, value='//div[@class="xCoord"]/input').send_keys(coordinates[0])
         self.driver.find_element(by=By.XPATH, value='//div[@class="yCoord"]/input').send_keys(coordinates[1])
         # Input troops
-        try:
-            for index, t in enumerate(troops):
-                self.driver.find_element(by=By.XPATH,
-                                         value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input').send_keys(t)
-                time_to_sleep = random.uniform(0, 0.5)
-                time.sleep(time_to_sleep)
-        except NoSuchElementException:
-            # in case hero is not in the village
-            pass
+        for index, t in enumerate(troops):
+            troops_available = 0
+            try:
+                troops_available = int(self.driver.find_element(by=By.XPATH,
+                                                                value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/a').text.encode(
+                    'ascii', 'ignore'))
+            except NoSuchElementException:
+                # troops unavailable
+                pass
+            if troops_available - t < 0:
+                # Not enough troops to send
+                return False
+            try:
+                input_box = self.driver.find_element(by=By.XPATH,
+                                                     value=f'//*[@id="troops"]/tbody/{quantity_inputs[index]}/input')
+                input_box.clear()
+                input_box.send_keys(t)
+
+            except NoSuchElementException:
+                # in case hero is not in the village
+                pass
+            time_to_sleep = random.uniform(0, 0.5)
+            time.sleep(time_to_sleep)
         # Click submit
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
         # Click confirm
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+        return True
 
     def check_attack_possible(self):
         """

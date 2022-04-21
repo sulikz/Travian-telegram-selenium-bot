@@ -10,28 +10,28 @@ class Bot:
     config = ConfigParser()
 
     def __init__(self, config_file):
+        # Read config
         self.config.read(config_file)
+        self.email = self.config.get('USER', 'email')
+        self.password = self.config.get('USER', 'password')
+        self.server = self.config.get('USER', 'server')
+        self.url = self.config.get('WEBDRIVER', 'url')
+        # Initialize webdriver
+        self.twd = TravianWebDriver(self.url)
+        # Initialize attributes
         self.farm_list = None
         self.building_queue = None
-        self.twd = TravianWebDriver(self.config)
         self.stationary_troops = None
         self.village_buildings = None
         self.fields = []
         self.production = Production
         self.storage = Storage
 
-    # def dodge(self):
-    #     self.twd.click_buildings()
-    #     self.twd.click_rally_point()
-    #     self.twd.click_rp_send_troops()
-    #     self.twd.send_troops()
-    #     self.twd.click_rp_overview()
-    #     pass
-
     def login(self):
         self.twd.close_popups()
-        # self.twd.change_language_british()
-        self.twd.login()
+        if 'Europe' in self.server:
+            self.twd.change_language_british()
+        self.twd.login(self.email, self.password, self.server)
 
     def read_village_info(self):
         functions = [self.twd.click_resources(), self.read_resources(), self.read_fields(), self.twd.click_buildings(),

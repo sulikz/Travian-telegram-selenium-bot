@@ -50,7 +50,7 @@ def notifier(config_file):
     telebot = TelegramBot(config_file)
     bot = Bot(config_file)
     bot.login()
-    telebot.send_telegram_text('Telegram notifications enabled.')
+    telebot.send_telegram_text(f'Telegram notifier enabled. \n Logged into {bot.server}.')
     while True:
         # Check incoming attacks
         incoming_attack_time = bot.check_attack()
@@ -58,9 +58,9 @@ def notifier(config_file):
             telebot.send_telegram_text(f'Incoming attack in {str(datetime.timedelta(seconds=incoming_attack_time))}')
             attack_notification_sent = True
         # Wait for the attack to pass so the new one will be detected
-        if incoming_attack_time < 5 and attack_notification_sent:
+        if incoming_attack_time < 30 and attack_notification_sent:
             attack_notification_sent = False
-            time.sleep(5)
+            time.sleep(30)
         # Check adventure
         hero_in_village = bot.twd.check_hero()
         adventure_available = bot.twd.check_adventure()
@@ -95,18 +95,15 @@ def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
 
     """
     telebot = TelegramBot(config_file)
-    telebot.send_telegram_text('Initializing farming process.')
     bot = Bot(config_file)
     bot.login()
     bot.load_farm_file(farm_file)
-    telebot.send_telegram_text(f'Farm list loaded. {bot.farm_list}')
-    telebot.send_telegram_text('Farming process enabled.')
+    telebot.send_telegram_text('Farming process enabled. \n Logged into {bot.server}.')
     random.shuffle(bot.farm_list)
     # Enter rally point
     bot.twd.click_buildings()
     bot.twd.click_rally_point()
     while True:
-        enough_troops = False
         for destination in bot.farm_list:
             # Unpack troops
             troops, coords = destination
@@ -114,27 +111,13 @@ def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
             sleep_random(0, 1)
             bot.twd.click_rp_send_troops()
             sleep_random(0, 1)
-            bot.send_troops(troops, AttackType.Raid, coords)
+            enough_troops = bot.send_troops(troops, AttackType.Raid, coords)
             if not bot.twd.check_attack_possible():
-                enough_troops = False
                 telebot.send_telegram_text(f'Unable to send troops to {coords}')
-            # Wait if all troops have been sent
-            while not enough_troops:
-                sleep_random(0, 1)
-                bot.twd.click_rp_overview()
-                sleep_random(0, 1)
-                bot.twd.click_stationary_troops_filter()
-                bot.read_army()
-                # Get current troops
-                # If not enough troops -> sleep
-                temp_list = []
-                for i, _ in enumerate(bot.farm_list):
-                    temp_list.append(bot.stationary_troops[i] - troops[i])
-                if any(f < 0 for f in temp_list):
-                    telebot.send_telegram_text(f'Not enough troops. Sleeping...')
-                    sleep_random(min_sleep_time, max_sleep_time)
-                else:
-                    enough_troops = True
+            if not enough_troops:
+                telebot.send_telegram_text(f'Not enough troops. Sleeping...')
+                sleep_random(min_sleep_time, max_sleep_time)
+                bot.twd.driver.refresh()
 
 
 def builder():

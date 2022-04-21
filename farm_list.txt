@@ -8,5 +8,9 @@
 # Teuton troops
 # Clubswinger;Spearman;Axeman;Scout;Paladin;Teutonic Knight;Ram;Catapult;Chieftain;Settler
 #
-3 0 0 0 0 0 0 0 0 0 0;-59 -152
-3 0 0 0 0 0 0 0 0 0 0;-52 -146
+3 0 0 0 0 0 0 0 0 0 0;-88 -15
+3 0 0 0 0 0 0 0 0 0 0;-92 -13
+3 0 0 0 0 0 0 0 0 0 0;-82 -12
+#3 0 0 0 0 0 0 0 0 0 0;-83 -9
+#3 0 0 0 0 0 0 0 0 0 0;-86 -15
+#3 0 0 0 0 0 0 0 0 0 0;-87 -16
