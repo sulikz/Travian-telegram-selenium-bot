@@ -1,4 +1,6 @@
+import random
 import re
+import time
 
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
@@ -287,7 +289,6 @@ class TravianWebDriver:
                 except NoSuchElementException:
                     # troops unavailable
                     pass
-                print(f"{troops_available} - {t}")
                 if troops_available - t < 0:
                     # Not enough troops to send
                     return False
@@ -313,7 +314,9 @@ class TravianWebDriver:
         self.driver.find_element(by=By.XPATH, value='//div[@class="yCoord"]/input').clear()
         self.driver.find_element(by=By.XPATH, value='//div[@class="yCoord"]/input').send_keys(coordinates[1])
         # Click submit
+        time.sleep(random.uniform(1, 4))
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
+        time.sleep(random.uniform(0, 0.8))
         # Click confirm
         self.driver.find_element(by=By.XPATH, value='//*[@id="btn_ok"]').click()
         return True
@@ -388,20 +391,28 @@ class TravianWebDriver:
         for index, r in enumerate(production):
             if index >= 4:
                 break
-            production_list.append(int(r.text.encode('ascii', 'ignore')))
+            try:
+                production_list.append(int("".join(filter(str.isdigit, r.text.encode('ascii', 'ignore')))))
+            except TypeError:
+                production_list.append(int(r.text.encode('ascii', 'ignore')))
+
         return production_list
 
     def get_capacity(self) -> list:
-        """
+        """decode
         Get capacity of warehouse and granary.
         Returns
         -------
         list: returns list of capacity in the following order: [warehouse, granary]
         """
         capacity_list = []
+        time.sleep(2)
         capacity = self.driver.find_elements(by=By.CLASS_NAME, value='capacity')
         for c in capacity:
-            capacity_list.append(int(c.text.encode('ascii', 'ignore')))
+            # capacity_list.append(int("".join(filter(str.isdigit, c.text.encode('ascii', 'ignore')))))
+            capacity_list.append(int(c.text.encode('ascii', 'ignore').decode().replace(',', '')))
+            # except TypeError:
+            #     capacity_list.append(int(c.text.encode('ascii', 'ignore').decode().replace(',', '')))
         return capacity_list
 
     def get_fields(self) -> list:
@@ -433,7 +444,7 @@ class TravianWebDriver:
                 buildings_dict.update({int(id): building_name})
         return buildings_dict
 
-    def check_if_building(self):
+    def is_built(self):
         """
         From Resources/Buildings view checks if any building is currently being built.
         """

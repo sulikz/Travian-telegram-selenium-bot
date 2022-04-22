@@ -1,6 +1,7 @@
 import datetime
 import multiprocessing
 import random
+import sys
 import time
 
 from bot import Bot, sleep_random
@@ -29,7 +30,7 @@ class ProcessWrapper:
         self.is_running = False
 
 
-def notifier(config_file):
+def notifier(config):
     """
     Notifies user through Telegram messages about:
     -incoming attacks
@@ -37,7 +38,7 @@ def notifier(config_file):
     -empty building queue status
     Parameters
     ----------
-    config_file
+    config
 
     Returns
     -------
@@ -51,11 +52,14 @@ def notifier(config_file):
     clay_notification = False
     iron_notification = False
     crop_notification = False
-    telebot = TelegramBot(config_file)
-    bot = Bot(config_file)
+    telebot = TelegramBot(config)
+    last_msg_id = telebot.get_message_id()
+    bot = Bot(config)
+    last_msg_id = check_termination(bot, telebot, '/notifier', last_msg_id)
     bot.login()
-    telebot.send_telegram_text(f'Telegram notifier enabled. \n Logged into {bot.server}.')
+
     while True:
+        last_msg_id = check_termination(bot, telebot, '/notifier', last_msg_id)
         r = random.randint(1, 100000)
         if r == 50:
             bot.twd.driver.refresh()
@@ -77,7 +81,7 @@ def notifier(config_file):
         if adventure_notification and not hero_in_village:
             adventure_notification = False
         # Check building queue
-        is_being_built = bot.twd.check_if_building()
+        is_being_built = bot.twd.is_built()
         if not is_being_built and not building_notification_:
             telebot.send_telegram_text(f'Building queue free. Resources in the village: {bot.twd.get_resources()}')
             building_notification_ = True
@@ -104,15 +108,15 @@ def notifier(config_file):
             crop_notification = True
 
 
-def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
+def farmer(config, farm_file, min_sleep_time, max_sleep_time):
     """
     Raids destinations specified in farm_file. Shuffles raid list each time farmer is initialized for more random
     behavior. Skips destination if unable to attack. If there are not enough troops function sleeps for random
     <min_sleep_time, max_sleep_time> [s].
     Parameters
     ----------
+    config
     farm_file
-    config_file
     min_sleep_time
     max_sleep_time
 
@@ -120,11 +124,13 @@ def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
     -------
 
     """
-    telebot = TelegramBot(config_file)
-    bot = Bot(config_file)
+
+    telebot = TelegramBot(config)
+    last_msg_id = telebot.get_message_id()
+    bot = Bot(config)
+    last_msg_id = check_termination(bot, telebot, '/farmer', last_msg_id)
     bot.login()
     bot.load_farm_file(farm_file)
-    telebot.send_telegram_text(f'Farmer enabled. \n Logged into {bot.server}.')
     random.shuffle(bot.farm_list)
     # Enter rally point
     sleep_random(0, 1)
@@ -133,33 +139,35 @@ def farmer(config_file, farm_file, min_sleep_time, max_sleep_time):
     bot.twd.click_rally_point()
     sleep_random(0, 1)
     while True:
-        telebot.send_telegram_text(f'Sending troops...')
         for destination in bot.farm_list:
+            last_msg_id = check_termination(bot, telebot, '/farmer', last_msg_id)
             sleep_random(0, 3)
             bot.twd.click_rp_send_troops()
             # Unpack troops
             troops, coords = destination
             # Send troops to coordinates
-            sleep_random(0, 3)
+            sleep_random(0, 1)
             enough_troops = bot.twd.send_troops(troops, AttackType.Raid, coords)
             if not bot.twd.check_attack_possible():
                 telebot.send_telegram_text(f'Unable to send troops to {coords}')
                 continue
-            sleep_random(0, 3)
+            sleep_random(0, 1)
+            sleeping_time = random.uniform(min_sleep_time, max_sleep_time)
+            start_time = time.perf_counter()
+            while time.perf_counter() - start_time < sleeping_time and not enough_troops:
+                last_msg_id = check_termination(bot, telebot, '/farmer', last_msg_id)
             while not enough_troops:
-                telebot.send_telegram_text(f'Not enough troops. Sleeping...')
-                sleep_random(min_sleep_time, max_sleep_time)
                 bot.twd.driver.refresh()
                 enough_troops = bot.twd.send_troops(troops, AttackType.Raid, coords)
 
 
-def builder(config_file, build_file, min_sleep_time=600, max_sleep_time=2400):
+def builder(config, build_file, min_sleep_time=600, max_sleep_time=2400):
     """
     Builds buildings specified in build_file. If upgrade button is unavailable due to lack of resources script will
     sleep for random <min_sleep_time, max_sleep_time> [s].
     Parameters
     ----------
-    config_file
+    config
     build_file
     min_sleep_time
     max_sleep_time
@@ -168,33 +176,32 @@ def builder(config_file, build_file, min_sleep_time=600, max_sleep_time=2400):
     -------
 
     """
-    telebot = TelegramBot(config_file)
-    bot = Bot(config_file)
+    telebot = TelegramBot(config)
+    last_msg_id = telebot.get_message_id()
+    bot = Bot(config)
+    last_msg_id = check_termination(bot, telebot, '/builder', last_msg_id)
     bot.login()
     bot.load_build_queue_file(build_file)
-    telebot.send_telegram_text(f'Builder enabled. \n Logged into {bot.server}.')
     bot.twd.click_buildings()
     telebot.send_telegram_text(f'Build queue: {bot.building_queue}')
     for b in bot.building_queue:
+        last_msg_id = check_termination(bot, telebot, '/builder', last_msg_id)
         bot.twd.click_building(b)
         while not bot.twd.is_upgrade_button():
-            sleep_random(min_sleep_time, max_sleep_time)
+            sleeping_time = random.uniform(min_sleep_time, max_sleep_time)
+            start_time = time.perf_counter()
+            while time.perf_counter() - start_time < sleeping_time:
+                last_msg_id = check_termination(bot, telebot, '/builder', last_msg_id)
             bot.twd.driver.refresh()
         bot.twd.click_upgrade()
     telebot.send_telegram_text(f'Builder finished!')
 
 
-def listener():
-    # to manage bot through telegram process
-    pass
-
-# def dodger():
-#     bot = Bot('config.ini')
-#     bot.login()
-#     send_telegram_text('Dodge attacks enabled.')
-#     while True:
-#         incoming_attack_time = bot.check_attack()
-#         if incoming_attack_time < 3:
-#             bot.twd.send_troops()
-#             # dodge_attack
-#             pass
+def check_termination(bot: Bot, telebot: TelegramBot, command, last_msg_id):
+    if last_msg_id != telebot.get_message_id():
+        last_msg_id = telebot.get_message_id()
+        c = telebot.get_telegram_text()
+        if c == command:
+            bot.twd.driver.close()
+            sys.exit()
+    return last_msg_id

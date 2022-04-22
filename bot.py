@@ -1,20 +1,17 @@
 import random
 import time
-from configparser import ConfigParser
 
 from travian_webdriver import TravianWebDriver
 
 
 class Bot:
-    config = ConfigParser()
 
-    def __init__(self, config_file):
+    def __init__(self, config):
         # Read config
-        self.config.read(config_file)
-        self.email = self.config.get('USER', 'email')
-        self.password = self.config.get('USER', 'password')
-        self.server = self.config.get('USER', 'server')
-        self.url = self.config.get('WEBDRIVER', 'url')
+        self.email = config.get('USER', 'email')
+        self.password = config.get('USER', 'password')
+        self.server = config.get('USER', 'server')
+        self.url = config.get('WEBDRIVER', 'url')
         # Initialize webdriver
         self.twd = TravianWebDriver(self.url)
         # Initialize attributes
@@ -33,17 +30,18 @@ class Bot:
         if 'Europe' in self.server:
             self.twd.change_language_british()
         self.twd.login(self.email, self.password, self.server)
+        time.sleep(1)
 
     def read_village_info(self):
-        functions = [self.twd.click_resources(), self.read_resources(), self.read_fields(), self.twd.click_buildings(),
-                     self.read_buildings(), self.twd.click_resources()]
+        functions = [self.twd.click_resources, self.read_resources, self.read_fields, self.twd.click_buildings,
+                     self.read_buildings, self.twd.click_resources]
         for f in functions:
             sleep_random()
             f()
 
     def read_troops(self):
-        functions = [self.twd.click_buildings(), self.twd.click_rally_point(), self.twd.click_rp_overview(),
-                     self.twd.click_stationary_troops_filter(), self.read_army(), self.twd.click_resources()]
+        functions = [self.twd.click_buildings, self.twd.click_rally_point, self.twd.click_rp_overview,
+                     self.twd.click_stationary_troops_filter, self.read_army, self.twd.click_resources]
         for f in functions:
             sleep_random()
             f()
@@ -89,7 +87,7 @@ class Bot:
         self.building_queue = building_queue
 
 
-def sleep_random(min_t=0.5, max_t=3):
+def sleep_random(min_t=1, max_t=3):
     time_to_sleep = random.uniform(min_t, max_t)
     time.sleep(time_to_sleep)
     return time_to_sleep

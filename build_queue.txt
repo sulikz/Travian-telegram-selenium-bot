@@ -1,4 +1,5 @@
 # File format:
 # BUILDING_NAME:LEVEL
-Warehouse
-Warehouse
+Main Building
+Main Building
+Main Building
