@@ -19,7 +19,7 @@ if __name__ == '__main__':
     bot.login()
 
     while True:
-        if last_msg_id != tbot.get_message_id():
+        if last_msg_id < tbot.get_message_id() and last_msg_id != 0:
             last_msg_id = tbot.get_message_id()
             command = tbot.get_telegram_text()
 

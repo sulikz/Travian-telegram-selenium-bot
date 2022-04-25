@@ -376,7 +376,7 @@ class TravianWebDriver:
         res = ['l1', 'l2', 'l3', 'l4']
         resources_list = []
         for r in res:
-            resources_list.append(int(self.driver.find_element(by=By.ID, value=r).text))
+            resources_list.append(int(self.driver.find_element(by=By.ID, value=r).text.replace(',', '')))
         return resources_list
 
     def get_production(self) -> list:

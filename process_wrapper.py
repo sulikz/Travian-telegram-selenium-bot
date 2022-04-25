@@ -198,7 +198,7 @@ def builder(config, build_file, min_sleep_time=600, max_sleep_time=2400):
 
 
 def check_termination(bot: Bot, telebot: TelegramBot, command, last_msg_id):
-    if last_msg_id != telebot.get_message_id():
+    if last_msg_id < telebot.get_message_id() and last_msg_id != 0:
         last_msg_id = telebot.get_message_id()
         c = telebot.get_telegram_text()
         if c == command:

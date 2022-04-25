@@ -19,8 +19,11 @@ class TelegramBot:
         return requests.get(received)
 
     def get_message_id(self):
-        response = self.get_updates().text
-        return re.search('(.*"message_id":)(.*)(,"from".*)', response).group(2)
+        try:
+            response = self.get_updates().text
+            return int(re.search('(.*"message_id":)(.*)(,"from".*)', response).group(2))
+        except AttributeError:
+            return 0
 
     def get_telegram_text(self):
         response = self.get_updates().text
