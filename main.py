@@ -14,7 +14,7 @@ if __name__ == '__main__':
     farmer_enabled = False
     builder_enabled = False
     notifier_enabled = False
-    tbot.send_telegram_text('Bot enabled.')
+    tbot.send_telegram_text('Bot enabled. Type /help for commands.')
     bot = Bot(config)
     bot.login()
 
@@ -22,6 +22,22 @@ if __name__ == '__main__':
         if last_msg_id < tbot.get_message_id() and last_msg_id != 0:
             last_msg_id = tbot.get_message_id()
             command = tbot.get_telegram_text()
+
+            if command == '/help':
+                tbot.send_telegram_text(
+                    'Available commands:'
+                    '\n/info - get current resources, storage capacity, incoming attack and building queue status'
+                    '\n/army - get current stationary troops'
+                    '\n/notifier - turn on/off notifier. New message will be sent whenever:'
+                    '\n     -village is under attack'
+                    '\n     -hero and adventure are available'
+                    '\n     -building has been finished'
+                    '\n     -storage 90% full'
+                    '\n/farmer - turn on/off farmer. Raids villages/oasis defined in farm_list.txt in a cycle. Sleeps '
+                    'for random time when no troops are available.'
+                    '\n/builder - builds buildings defined in build_queue in order. Does not build resource fields or '
+                    'construct new buildings.'
+                )
 
             if command == '/info':
                 bot.read_resources()
@@ -39,6 +55,16 @@ if __name__ == '__main__':
                 tbot.send_telegram_text(
                     f'{bot.stationary_troops}')
 
+            if command == '/notifier':
+                notifier_process = ProcessWrapper(notifier, args=(config,))
+                if not notifier_enabled:
+                    notifier_process.start()
+                    tbot.send_telegram_text('Notifier enabled.')
+                    notifier_enabled = True
+                else:
+                    tbot.send_telegram_text('Notifier disabled.')
+                    notifier_enabled = False
+                    
             if command == '/farmer':
                 if not farmer_enabled:
                     farmer_process = ProcessWrapper(farmer, args=(config, 'farm_list.txt', 1800, 3600,))
@@ -58,13 +84,3 @@ if __name__ == '__main__':
                 else:
                     tbot.send_telegram_text('Builder disabled.')
                     builder_enabled = False
-
-            if command == '/notifier':
-                notifier_process = ProcessWrapper(notifier, args=(config,))
-                if not notifier_enabled:
-                    notifier_process.start()
-                    tbot.send_telegram_text('Notifier enabled.')
-                    notifier_enabled = True
-                else:
-                    tbot.send_telegram_text('Notifier disabled.')
-                    notifier_enabled = False
