@@ -89,23 +89,31 @@ def notifier(config):
             building_notification_ = False
         # Check if storage is almost full
         bot.read_resources()
-        max_capacity = 0.95
+        max_capacity = 0.9
+
         if bot.resources[0] > bot.warehouse_capacity * max_capacity and not wood_notificaton:
             telebot.send_telegram_text(f'Wood almost full: {bot.twd.get_resources()[0]}/{bot.warehouse_capacity}.')
-        else:
             wood_notificaton = True
+        if bot.resources[0] < bot.warehouse_capacity * max_capacity and wood_notificaton:
+            wood_notificaton = False
+
         if bot.resources[1] > bot.warehouse_capacity * max_capacity and not clay_notification:
             telebot.send_telegram_text(f'Clay almost full: {bot.twd.get_resources()[1]}/{bot.warehouse_capacity}.')
-        else:
             clay_notification = True
+        if bot.resources[1] < bot.warehouse_capacity * max_capacity and clay_notification:
+            clay_notification = False
+
         if bot.resources[2] > bot.warehouse_capacity * max_capacity and not iron_notification:
             telebot.send_telegram_text(f'Iron almost full: {bot.twd.get_resources()[2]}/{bot.warehouse_capacity}.')
-        else:
             iron_notification = True
+        if bot.resources[2] < bot.warehouse_capacity * max_capacity and iron_notification:
+            iron_notification = False
+
         if bot.resources[3] > bot.granary_capacity * max_capacity and not crop_notification:
             telebot.send_telegram_text(f'Granary almost full: {bot.twd.get_resources()[3]}/{bot.granary_capacity}.')
-        else:
             crop_notification = True
+        if bot.resources[3] < bot.granary_capacity * max_capacity and crop_notification:
+            crop_notification = False
 
 
 def farmer(config, farm_file, min_sleep_time, max_sleep_time):
