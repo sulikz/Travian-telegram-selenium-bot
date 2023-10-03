@@ -1,5 +1,5 @@
 # travianium
-UPDATE: This is most likely outdated, however if you want to build your own bot you can see it as an example.
+UPDATE: This is most likely outdated, however if you want to build your own bot you can use it as an example.
 
 Automated Travian game using Selenium+Python.
 
